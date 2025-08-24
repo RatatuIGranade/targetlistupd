@@ -1,0 +1,162 @@
+<!-- Enhanced Quest Card Template -->
+<div class="quest-card h-100 p-4 {% if quest.id in player_progress and player_progress[quest.id].is_completed %}completed{% endif %} difficulty-{{ quest.difficulty }}" data-difficulty="{{ quest.difficulty }}">
+    <!-- Completion Badge -->
+    {% if quest.id in player_progress and player_progress[quest.id].is_completed %}
+    <div class="completed-badge animate__animated animate__pulse animate__infinite">
+        <i class="fas fa-check"></i> Выполнено
+    </div>
+    {% endif %}
+
+    <!-- Difficulty Badge -->
+    <div class="quest-difficulty difficulty-{{ quest.difficulty }}">
+        <span class="difficulty-text">{{ quest.difficulty|title }}</span>
+        {% if quest.difficulty == 'easy' %}
+            <i class="fas fa-star"></i>
+        {% elif quest.difficulty == 'medium' %}
+            <i class="fas fa-star"></i><i class="fas fa-star"></i>
+        {% elif quest.difficulty == 'hard' %}
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+        {% elif quest.difficulty == 'epic' %}
+            <i class="fas fa-crown"></i>
+        {% endif %}
+    </div>
+
+    <!-- Quest Header -->
+    <div class="quest-header text-center mb-4">
+        <div class="quest-icon {% if quest.id in player_progress and player_progress[quest.id].is_completed %}animate__animated animate__bounceIn{% endif %}">
+            <i class="{{ quest.icon }}"></i>
+        </div>
+        <h4 class="quest-title mb-2">{{ quest.title }}</h4>
+        <p class="quest-description">{{ quest.description }}</p>
+    </div>
+
+    <!-- Progress Section -->
+    {% if quest.id in player_progress %}
+    {% set progress = player_progress[quest.id] %}
+    <div class="quest-progress-section mb-4">
+        <div class="progress-info d-flex justify-content-between mb-2">
+            <span class="progress-label">Прогресс</span>
+            <span class="progress-numbers">
+                {{ progress.current_progress if progress.is_accepted else 0 }} / {{ quest.target_value }}
+            </span>
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-bar" 
+                 style="width: {{ progress.progress_percentage if progress.is_accepted else 0 }}%"
+                 data-progress="{{ progress.progress_percentage if progress.is_accepted else 0 }}">
+            </div>
+        </div>
+        <div class="progress-percentage mt-1">
+            {{ progress.progress_percentage if progress.is_accepted else 0 }}% завершено
+        </div>
+    </div>
+    {% else %}
+    <div class="quest-progress-section mb-4">
+        <div class="progress-info d-flex justify-content-between mb-2">
+            <span class="progress-label">Прогресс</span>
+            <span class="progress-numbers">0 / {{ quest.target_value }}</span>
+        </div>
+        <div class="quest-progress">
+            <div class="quest-progress-bar" style="width: 0%"></div>
+        </div>
+        <div class="progress-percentage mt-1">0% завершено</div>
+    </div>
+    {% endif %}
+
+    <!-- Rewards Section -->
+    <div class="quest-rewards mb-4">
+        <h6 class="rewards-title mb-3">
+            <i class="fas fa-gift me-2"></i>Награды
+        </h6>
+        <div class="rewards-grid">
+            {% if quest.reward_xp > 0 %}
+            <div class="reward-item reward-xp">
+                <div class="reward-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="reward-content">
+                    <span class="reward-value">{{ "{:,}".format(quest.reward_xp) }}</span>
+                    <span class="reward-label">XP</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if quest.reward_coins > 0 %}
+            <div class="reward-item reward-coins">
+                <div class="reward-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="reward-content">
+                    <span class="reward-value">{{ "{:,}".format(quest.reward_coins) }}</span>
+                    <span class="reward-label">Койны</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if quest.reward_reputation > 0 %}
+            <div class="reward-item reward-reputation">
+                <div class="reward-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="reward-content">
+                    <span class="reward-value">{{ "{:,}".format(quest.reward_reputation) }}</span>
+                    <span class="reward-label">Репутация</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    {% if current_player %}
+        {% if quest.id in player_progress %}
+            {% set progress = player_progress[quest.id] %}
+            {% if not progress.is_accepted %}
+                <form method="POST" action="{{ url_for('accept_quest', quest_id=quest.id) }}" class="quest-action">
+                    <button type="submit" class="btn btn-quest btn-accept w-100">
+                        <i class="fas fa-play me-2"></i>Принять квест
+                    </button>
+                </form>
+            {% elif progress.is_completed %}
+                <div class="quest-action">
+                    <button class="btn btn-quest btn-completed w-100" disabled>
+                        <i class="fas fa-check me-2"></i>Выполнен
+                    </button>
+                </div>
+            {% else %}
+                <div class="quest-action">
+                    <button class="btn btn-quest btn-in-progress w-100" disabled>
+                        <i class="fas fa-hourglass-half me-2"></i>В процессе
+                    </button>
+                </div>
+            {% endif %}
+        {% else %}
+            <form method="POST" action="{{ url_for('accept_quest', quest_id=quest.id) }}" class="quest-action">
+                <button type="submit" class="btn btn-quest btn-accept w-100">
+                    <i class="fas fa-play me-2"></i>Принять квест
+                </button>
+            </form>
+        {% endif %}
+    {% else %}
+        <div class="quest-action">
+            <a href="{{ url_for('player_login') }}" class="btn btn-quest btn-login w-100">
+                <i class="fas fa-sign-in-alt me-2"></i>Войти для участия
+            </a>
+        </div>
+    {% endif %}
+
+    <!-- Quest Category Badge -->
+    <div class="quest-category-badge">
+        {% if quest.quest_category == 'daily' %}
+            <i class="fas fa-sun"></i> Ежедневный
+        {% elif quest.quest_category == 'weekly' %}
+            <i class="fas fa-calendar-week"></i> Еженедельный
+        {% elif quest.quest_category == 'monthly' %}
+            <i class="fas fa-calendar-alt"></i> Ежемесячный
+        {% elif quest.quest_category == 'permanent' %}
+            <i class="fas fa-infinity"></i> Постоянный
+        {% elif quest.quest_category == 'seasonal' %}
+            <i class="fas fa-snowflake"></i> Сезонный
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,1389 @@
+{% extends "base.html" %}
+
+{% block title %}{{ player.nickname }} - Профиль игрока{% endblock %}
+
+{% block content %}
+<!-- Hero Section with Animated Background -->
+<div class="profile-hero-section">
+    <div class="animated-background">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+            <div class="shape shape-5"></div>
+        </div>
+    </div>
+
+    <div class="hero-content">
+        <div class="container">
+            <div class="row align-items-center min-vh-100 py-5">
+                <!-- Player Avatar & Main Info -->
+                <div class="col-lg-4 text-center mb-5 mb-lg-0">
+                    <div class="player-avatar-container" data-aos="zoom-in" data-aos-duration="800">
+                        <div class="avatar-ring"></div>
+                        <div class="avatar-glow"></div>
+                        <img src="{{ player.minecraft_skin_url }}" 
+                             alt="{{ player.nickname }}"
+                             class="player-avatar-hero"
+                             onerror="this.src='https://mc-heads.net/avatar/steve/128'">
+                        <div class="level-badge">
+                            <span class="level-number">{{ player.level }}</span>
+                        </div>
+                    </div>
+
+                    <div class="player-name-section mt-4" data-aos="fade-up" data-aos-delay="300">
+                        <h1 class="player-name-hero">{{ player.nickname }}</h1>
+
+                        {% if player.custom_status %}
+                        <p class="player-status-hero">{{ player.custom_status }}</p>
+                        {% endif %}
+
+
+
+                        <!-- Enhanced Role and Title Display -->
+                        <div class="player-roles-hero mt-3">
+                            <div class="hero-role-container">
+                                <div class="role-display-hero">
+                                    {{ player.role_display_html|safe }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Custom Title Display -->
+                        {% if player.active_custom_title %}
+                        <div class="player-title-hero-container mt-3">
+                            <div class="player-title-hero {{ 'title-glow' if player.active_custom_title.glow_color else '' }}"
+                                 {% if player.active_custom_title.animated %}
+                                 style="background: linear-gradient(45deg, {{ player.active_custom_title.color }}, {{ player.active_custom_title.glow_color or player.active_custom_title.color }}, {{ player.active_custom_title.color }}); 
+                                        -webkit-background-clip: text; 
+                                        -webkit-text-fill-color: transparent; 
+                                        background-clip: text; 
+                                        background-size: 200% 200%; 
+                                        animation: titleGradientShift 4s ease-in-out infinite;
+                                        {% if player.active_custom_title.glow_color %}
+                                        filter: drop-shadow(0 0 8px {{ player.active_custom_title.glow_color }});
+                                        {% endif %}"
+                                 {% else %}
+                                 style="color: {{ player.active_custom_title.color }};
+                                        {% if player.active_custom_title.glow_color %}
+                                        text-shadow: 0 0 12px {{ player.active_custom_title.glow_color }}, 0 0 20px {{ player.active_custom_title.glow_color }};
+                                        {% endif %}"
+                                 {% endif %}
+                                 title="{{ player.active_custom_title.display_name }}">
+                                <span class="title-icon">💎</span>
+                                <span class="title-text">{{ player.active_custom_title.display_name }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Player Badges Display -->
+                        {% if player.visible_badges %}
+                        <div class="player-badges-hero mt-3">
+                            <div class="badges-hero-grid">
+                                {% for player_badge in player.visible_badges[:6] %}
+                                {% set badge = player_badge.badge %}
+                                <div class="badge-hero-item" title="{{ badge.description or badge.display_name }}">
+                                    <div class="badge-hero-icon" style="color: {{ badge.color }}; background: {{ badge.background_color if not badge.has_gradient else 'linear-gradient(45deg, ' + badge.gradient_start + ', ' + badge.gradient_end + ')' }};">
+                                        {% if badge.emoji_url %}
+                                            <img src="{{ badge.emoji_url }}" class="badge-emoji-hero" alt="{{ badge.display_name }}">
+                                        {% elif badge.emoji %}
+                                            {{ badge.emoji }}
+                                        {% else %}
+                                            <i class="{{ badge.icon }}"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% if player.visible_badges|length > 6 %}
+                                <div class="badge-more-indicator">
+                                    +{{ player.visible_badges|length - 6 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions mt-4" data-aos="fade-up" data-aos-delay="500">
+                        {% if is_owner %}
+                        <a href="{{ url_for('my_profile') }}" class="btn btn-glow btn-primary me-2">
+                            <i class="fas fa-edit me-2"></i>Редактировать
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('index') }}" class="btn btn-glow btn-outline-light">
+                            <i class="fas fa-arrow-left me-2"></i>К лидерам
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="col-lg-8">
+                    <div class="stats-grid">
+                        <!-- Main Stats -->
+                        <div class="stat-card stat-card-primary" data-aos="fade-left" data-aos-delay="200">
+                            <div class="stat-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value">{{ "{:,}".format(player.experience) }}</h3>
+                                <p class="stat-label">Опыт</p>
+                                <div class="stat-progress">
+                                    <div class="progress-bar" style="width: {{ player.level_progress }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card stat-card-success" data-aos="fade-left" data-aos-delay="300">
+                            <div class="stat-icon">
+                                <i class="fas fa-sword"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value">{{ "{:,}".format(player.kills) }}</h3>
+                                <p class="stat-label">Убийства</p>
+                                <div class="stat-ratio">K/D: {{ player.kd_ratio }}</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card stat-card-warning" data-aos="fade-left" data-aos-delay="400">
+                            <div class="stat-icon">
+                                <i class="fas fa-medal"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value">{{ "{:,}".format(player.wins) }}</h3>
+                                <p class="stat-label">Победы</p>
+                                <div class="stat-ratio">{{ player.win_rate }}% побед</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card stat-card-info" data-aos="fade-left" data-aos-delay="500">
+                            <div class="stat-icon">
+                                <i class="fas fa-bed"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-value">{{ "{:,}".format(player.beds_broken) }}</h3>
+                                <p class="stat-label">Кровати</p>
+                                <div class="stat-ratio">
+                                    <div class="star-rating">
+                                        {% for i in range(1, 6) %}
+                                            <i class="fas fa-star {{ 'text-warning' if i <= player.star_rating else 'text-muted' }}"></i>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Sections -->
+<div class="profile-content">
+    <div class="container py-5">
+        <div class="row g-4">
+            <!-- Left Sidebar -->
+            <div class="col-lg-4">
+                <!-- Personal Info Card -->
+                <div class="info-card-modern" data-aos="fade-right" data-aos-delay="100">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-user-circle me-2"></i>Личная информация</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        {% if player.real_name %}
+                        <div class="info-item-modern">
+                            <div class="info-icon"><i class="fas fa-id-card"></i></div>
+                            <div class="info-content">
+                                <span class="info-label">Имя</span>
+                                <span class="info-value">{{ player.real_name }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if player.birthday %}
+                        <div class="info-item-modern">
+                            <div class="info-icon"><i class="fas fa-birthday-cake"></i></div>
+                            <div class="info-content">
+                                <span class="info-label">День рождения</span>
+                                <span class="info-value">{{ player.birthday.strftime('%d.%m.%Y') }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if player.location %}
+                        <div class="info-item-modern">
+                            <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div class="info-content">
+                                <span class="info-label">Локация</span>
+                                <span class="info-value">{{ player.location }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="info-item-modern">
+                            <div class="info-icon"><i class="fas fa-calendar-plus"></i></div>
+                            <div class="info-content">
+                                <span class="info-label">Регистрация</span>
+                                <span class="info-value">{{ player.created_at.strftime('%d.%m.%Y') }}</span>
+                            </div>
+                        </div>
+
+                        {% if player.karma %}
+                        <div class="info-item-modern">
+                            <div class="info-icon"><i class="fas fa-heart text-karma"></i></div>
+                            <div class="info-content">
+                                <span class="info-label">Карма</span>
+                                <span class="info-value text-karma">{{ player.karma }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if player.coins > 0 %}
+                        <div class="info-item-modern">
+                            <div class="info-icon"><i class="fas fa-coins text-warning"></i></div>
+                            <div class="info-content">
+                                <span class="info-label">Койны</span>
+                                <span class="info-value text-warning">{{ "{:,}".format(player.coins) }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if player.reputation > 0 %}
+                        <div class="info-item-modern">
+                            <div class="info-icon"><i class="fas fa-star text-info"></i></div>
+                            <div class="info-content">
+                                <span class="info-label">Репутация</span>
+                                <span class="info-value text-info">{{ "{:,}".format(player.reputation) }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Social Links Card -->
+                {% set social_networks = player.get_social_networks_list() %}
+                {% if social_networks or player.discord_tag or player.youtube_channel or player.twitch_channel %}
+                <div class="info-card-modern mt-4" data-aos="fade-right" data-aos-delay="200">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-share-alt me-2"></i>Социальные сети</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="social-links-modern">
+                            <!-- Legacy social fields -->
+                            {% if player.discord_tag %}
+                            <div class="social-link-modern discord" title="Discord: {{ player.discord_tag }}">
+                                <i class="fab fa-discord"></i>
+                                <span>Discord</span>
+                            </div>
+                            {% endif %}
+                            {% if player.youtube_channel %}
+                            <a href="{{ player.youtube_channel }}" target="_blank" class="social-link-modern youtube" title="YouTube">
+                                <i class="fab fa-youtube"></i>
+                                <span>YouTube</span>
+                            </a>
+                            {% endif %}
+                            {% if player.twitch_channel %}
+                            <a href="{{ player.twitch_channel }}" target="_blank" class="social-link-modern twitch" title="Twitch">
+                                <i class="fab fa-twitch"></i>
+                                <span>Twitch</span>
+                            </a>
+                            {% endif %}
+
+                            <!-- Extended social networks -->
+                            {% for network in social_networks %}
+                            <a href="{{ network.value if network.value.startswith('http') else 'https://' + network.value }}" target="_blank" class="social-link-modern {{ network.type }}" title="{{ network.type.title() }}">
+                                {% if network.type == 'discord' %}
+                                    <i class="fab fa-discord"></i>
+                                {% elif network.type == 'vk' %}
+                                    <i class="fab fa-vk"></i>
+                                {% elif network.type == 'telegram' %}
+                                    <i class="fab fa-telegram"></i>
+                                {% elif network.type == 'twitter' %}
+                                    <i class="fab fa-x-twitter"></i>
+                                {% elif network.type == 'instagram' %}
+                                    <i class="fab fa-instagram"></i>
+                                {% elif network.type == 'tiktok' %}
+                                    <i class="fab fa-tiktok"></i>
+                                {% elif network.type == 'steam' %}
+                                    <i class="fab fa-steam"></i>
+                                {% else %}
+                                    <i class="fas fa-link"></i>
+                                {% endif %}
+                                <span>{{ network.type.title() }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Bio Section -->
+                {% if player.bio %}
+                <div class="info-card-modern mb-4" data-aos="fade-left" data-aos-delay="100">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-quote-left me-2"></i>О игроке</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <p class="bio-text">{{ player.bio }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Detailed Statistics -->
+                <div class="info-card-modern mb-4" data-aos="fade-left" data-aos-delay="200">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-chart-line me-2"></i>Подробная статистика</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="detailed-stats-grid">
+                            <!-- Combat Stats -->
+                            <div class="stat-group-modern">
+                                <h6 class="stat-group-title">
+                                    <i class="fas fa-sword text-danger me-2"></i>Боевые показатели
+                                </h6>
+                                <div class="stat-items-modern">
+                                    <div class="stat-item-row">
+                                        <span class="stat-name">Убийства</span>
+                                        <span class="stat-value text-success">{{ "{:,}".format(player.kills) }}</span>
+                                    </div>
+                                    <div class="stat-item-row">
+                                        <span class="stat-name">Финальные убийства</span>
+                                        <span class="stat-value text-warning">{{ "{:,}".format(player.final_kills) }}</span>
+                                    </div>
+                                    <div class="stat-item-row">
+                                        <span class="stat-name">Смерти</span>
+                                        <span class="stat-value text-danger">{{ "{:,}".format(player.deaths) }}</span>
+                                    </div>
+                                    <div class="stat-item-row">
+                                        <span class="stat-name">K/D соотношение</span>
+                                        <span class="stat-value text-info">{{ player.kd_ratio }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Game Results -->
+                            <div class="stat-group-modern">
+                                <h6 class="stat-group-title">
+                                    <i class="fas fa-gamepad text-primary me-2"></i>Игровые результаты
+                                </h6>
+                                <div class="stat-items-modern">
+                                    <div class="stat-item-row">
+                                        <span class="stat-name">Игры сыграно</span>
+                                        <span class="stat-value text-primary">{{ "{:,}".format(player.games_played) }}</span>
+                                    </div>
+                                    <div class="stat-item-row">
+                                        <span class="stat-name">Победы</span>
+                                        <span class="stat-value text-success">{{ "{:,}".format(player.wins) }}</span>
+                                    </div>
+                                    <div class="stat-item-row">
+                                        <span class="stat-name">Кровати сломано</span>
+                                        <span class="stat-value text-info">{{ "{:,}".format(player.beds_broken) }}</span>
+                                    </div>
+                                    <div class="stat-item-row">
+                                        <span class="stat-name">Процент побед</span>
+                                        <span class="stat-value text-warning">{{ player.win_rate }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resources Section -->
+                        <div class="resources-section mt-4">
+                            <h6 class="section-title">
+                                <i class="fas fa-gem text-warning me-2"></i>Собранные ресурсы
+                            </h6>
+                            <div class="resources-grid">
+                                <div class="resource-card iron">
+                                    <div class="resource-icon">
+                                        <i class="fas fa-cube"></i>
+                                    </div>
+                                    <div class="resource-info">
+                                        <div class="resource-value">{{ "{:,}".format(player.iron_collected) }}</div>
+                                        <div class="resource-name">Железо</div>
+                                    </div>
+                                </div>
+                                <div class="resource-card gold">
+                                    <div class="resource-icon">
+                                        <i class="fas fa-coins"></i>
+                                    </div>
+                                    <div class="resource-info">
+                                        <div class="resource-value">{{ "{:,}".format(player.gold_collected) }}</div>
+                                        <div class="resource-name">Золото</div>
+                                    </div>
+                                </div>
+                                <div class="resource-card diamond">
+                                    <div class="resource-icon">
+                                        <i class="fas fa-gem"></i>
+                                    </div>
+                                    <div class="resource-info">
+                                        <div class="resource-value">{{ "{:,}".format(player.diamond_collected) }}</div>
+                                        <div class="resource-name">Алмазы</div>
+                                    </div>
+                                </div>
+                                <div class="resource-card emerald">
+                                    <div class="resource-icon">
+                                        <i class="fas fa-gem"></i>
+                                    </div>
+                                    <div class="resource-info">
+                                        <div class="resource-value">{{ "{:,}".format(player.emerald_collected) }}</div>
+                                        <div class="resource-name">Изумруды</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gaming Preferences -->
+                {% if player.favorite_server or player.favorite_map or player.preferred_gamemode %}
+                <div class="info-card-modern mb-4" data-aos="fade-left" data-aos-delay="300">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-heart me-2"></i>Игровые предпочтения</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="preferences-grid">
+                            {% if player.favorite_server %}
+                            <div class="preference-card">
+                                <div class="preference-icon">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                                <div class="preference-content">
+                                    <div class="preference-label">Любимый сервер</div>
+                                    <div class="preference-value">{{ player.favorite_server }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if player.favorite_map %}
+                            <div class="preference-card">
+                                <div class="preference-icon">
+                                    <i class="fas fa-map"></i>
+                                </div>
+                                <div class="preference-content">
+                                    <div class="preference-label">Любимая карта</div>
+                                    <div class="preference-value">{{ player.favorite_map }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if player.preferred_gamemode %}
+                            <div class="preference-card">
+                                <div class="preference-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="preference-content">
+                                    <div class="preference-label">Режим игры</div>
+                                    <div class="preference-value">{{ player.preferred_gamemode }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Player Badges -->
+                {% if player.visible_badges %}
+                <div class="info-card-modern mb-4" data-aos="fade-left" data-aos-delay="400">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-medal me-2"></i>Достижения и бейджи</h5>
+                    </div>
+                    <div class="card-body-modern">
+                        <div class="badges-showcase">
+                            {% for player_badge in player.visible_badges %}
+                            {% set badge = player_badge.badge %}
+                            <div class="badge-showcase-item" title="{{ badge.description or badge.display_name }}">
+                                <div class="badge-glow"></div>
+                                <div class="badge-icon-modern">
+                                    <i class="{{ badge.icon }}"></i>
+                                </div>
+                                <div class="badge-name-modern">{{ badge.display_name }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- ASCEND Performance Card -->
+                <div class="info-card-modern" data-aos="fade-left" data-aos-delay="500">
+                    <div class="card-header-modern">
+                        <h5><i class="fas fa-star text-warning me-2"></i>ASCEND Performance</h5>
+                    </div>
+                    <div class="card-body-modern p-0">
+                        <div class="ascend-card-wrapper">
+                            {% include 'ascend_card.html' %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AOS Library -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 800,
+        easing: 'ease-in-out',
+        once: true
+    });
+
+    // Initialize ASCEND card
+    document.addEventListener('DOMContentLoaded', function() {
+        const playerId = {{ player.id }};
+        if (typeof loadASCENDDataV3 === 'function') {
+            loadASCENDDataV3(playerId, 'bedwars');
+        }
+    });
+</script>
+
+<style>
+/* Modern Profile Styles */
+.profile-hero-section {
+    position: relative;
+    min-height: 100vh;
+    background: {% if player.profile_banner_color %}linear-gradient(135deg, {{ player.profile_banner_color }}22 0%, {{ player.profile_banner_color }}44 50%, {{ player.profile_banner_color }}11 100%), linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%){% else %}linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%){% endif %};
+    overflow: hidden;
+}
+
+/* Custom section colors */
+.info-card-modern {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Text karma color */
+.text-karma {
+    color: #8B4FA5 !important;
+}
+
+.animated-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.15) 0%, transparent 50%);
+}
+
+.floating-shapes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.shape {
+    position: absolute;
+    background: linear-gradient(45deg, rgba(255, 193, 7, 0.1), rgba(255, 107, 53, 0.1));
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+.shape-1 {
+    width: 80px;
+    height: 80px;
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 120px;
+    height: 120px;
+    top: 20%;
+    right: 10%;
+    animation-delay: 1s;
+}
+
+.shape-3 {
+    width: 60px;
+    height: 60px;
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 2s;
+}
+
+.shape-4 {
+    width: 100px;
+    height: 100px;
+    bottom: 10%;
+    right: 20%;
+    animation-delay: 3s;
+}
+
+.shape-5 {
+    width: 40px;
+    height: 40px;
+    top: 50%;
+    left: 50%;
+    animation-delay: 4s;
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.3;
+    }
+    33% { 
+        transform: translateY(-30px) rotate(120deg);
+        opacity: 0.6;
+    }
+    66% { 
+        transform: translateY(20px) rotate(240deg);
+        opacity: 0.4;
+    }
+}
+
+.hero-content {
+    position: relative;
+    z-index: 10;
+}
+
+.player-avatar-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 2rem;
+}
+
+.avatar-ring {
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -15px;
+    border: 3px solid transparent;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #ffc107, #ff6b35, #28a745, #007bff) border-box;
+    background-clip: border-box;
+    animation: rotate 4s linear infinite;
+}
+
+.avatar-ring::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+    bottom: 3px;
+    background: #0f0f23;
+    border-radius: 50%;
+}
+
+.avatar-glow {
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    background: radial-gradient(circle, rgba(255, 193, 7, 0.4), transparent);
+    border-radius: 50%;
+    filter: blur(20px);
+    animation: pulse 3s ease-in-out infinite;
+}
+
+.player-avatar-hero {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    image-rendering: pixelated;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s ease;
+}
+
+.player-avatar-hero:hover {
+    transform: scale(1.05);
+}
+
+.level-badge {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    background: linear-gradient(45deg, #ffc107, #ff8c00);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #0f0f23;
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
+    z-index: 3;
+}
+
+.level-number {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #000;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+.player-name-hero {
+    font-size: 3rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, #fff, #ffc107);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+}
+
+.player-status-hero {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.player-role-hero {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-glow {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 193, 7, 0.4);
+}
+
+.btn-glow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: all 0.5s;
+}
+
+.btn-glow:hover::before {
+    left: 100%;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--card-color), var(--card-color-light));
+}
+
+.stat-card-primary {
+    --card-color: #007bff;
+    --card-color-light: #4dabf7;
+}
+
+.stat-card-success {
+    --card-color: #28a745;
+    --card-color-light: #51cf66;
+}
+
+.stat-card-warning {
+    --card-color: #ffc107;
+    --card-color-light: #ffd43b;
+}
+
+.stat-card-info {
+    --card-color: #17a2b8;
+    --card-color-light: #3bc9db;
+}
+
+.stat-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(45deg, var(--card-color), var(--card-color-light));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 20px rgba(var(--card-color), 0.4);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-progress {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--card-color), var(--card-color-light));
+    border-radius: 3px;
+    transition: width 1.5s ease;
+}
+
+.stat-ratio {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 0.5rem;
+}
+
+.profile-content {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    position: relative;
+}
+
+.info-card-modern {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.info-card-modern:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.card-header-modern {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 107, 53, 0.2));
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header-modern h5 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.card-body-modern {
+    padding: 2rem;
+}
+
+.info-item-modern {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.info-item-modern:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.info-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(45deg, #ffc107, #ff8c00);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #000;
+}
+
+.info-content {
+    flex: 1;
+}
+
+.info-label {
+    display: block;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.social-links-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.social-link-modern {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.social-link-modern:hover {
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.social-link-modern.discord:hover { 
+    border-color: #5865f2; 
+    background: rgba(88, 101, 242, 0.1);
+    box-shadow: 0 10px 25px rgba(88, 101, 242, 0.3);
+}
+
+.social-link-modern.youtube:hover { 
+    border-color: #ff0000; 
+    background: rgba(255, 0, 0, 0.1);
+    box-shadow: 0 10px 25px rgba(255, 0, 0, 0.3);
+}
+
+.social-link-modern.twitch:hover { 
+    border-color: #9146ff; 
+    background: rgba(145, 70, 255, 0.1);
+    box-shadow: 0 10px 25px rgba(145, 70, 255, 0.3);
+}
+
+.social-link-modern.vk:hover { 
+    border-color: #0077ff; 
+    background: rgba(0, 119, 255, 0.1);
+}
+
+.social-link-modern.telegram:hover { 
+    border-color: #0088cc; 
+    background: rgba(0, 136, 204, 0.1);
+}
+
+.social-link-modern.twitter:hover { 
+    border-color: #1da1f2; 
+    background: rgba(29, 161, 242, 0.1);
+}
+
+.social-link-modern i {
+    font-size: 1.5rem;
+}
+
+.bio-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    text-align: center;
+    font-style: italic;
+}
+
+.detailed-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.stat-group-modern {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-group-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba(255, 193, 7, 0.3);
+}
+
+.stat-items-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stat-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item-row:last-child {
+    border-bottom: none;
+}
+
+.stat-name {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.resources-section {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 2rem;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 1.5rem;
+}
+
+.resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.resource-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.resource-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--resource-color);
+}
+
+.resource-card.iron {
+    --resource-color: #6c757d;
+}
+
+.resource-card.gold {
+    --resource-color: #ffc107;
+}
+
+.resource-card.diamond {
+    --resource-color: #17a2b8;
+}
+
+.resource-card.emerald {
+    --resource-color: #28a745;
+}
+
+.resource-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.resource-icon {
+    font-size: 2.5rem;
+    color: var(--resource-color);
+    margin-bottom: 1rem;
+}
+
+.resource-info {
+    flex: 1;
+}
+
+.resource-value {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.resource-name {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.preferences-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.preference-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preference-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+}
+
+.preference-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(45deg, #ffc107, #ff8c00);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #000;
+}
+
+.preference-content {
+    flex: 1;
+}
+
+.preference-label {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.preference-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.badges-showcase {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1.5rem;
+}
+
+.badge-showcase-item {
+    position: relative;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 1.5rem 1rem;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.badge-showcase-item:hover {
+    transform: translateY(-5px) scale(1.05);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.badge-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 193, 7, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.badge-showcase-item:hover .badge-glow {
+    opacity: 1;
+}
+
+.badge-icon-modern {
+    font-size: 2.5rem;
+    color: #ffc107;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+.badge-name-modern {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    position: relative;
+    z-index: 2;
+}
+
+.ascend-card-wrapper {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .player-name-hero {
+        font-size: 2rem;
+    }
+
+    .player-avatar-hero {
+        width: 120px;
+        height: 120px;
+    }
+
+    .level-badge {
+        width: 50px;
+        height: 50px;
+    }
+
+    .level-number {
+        font-size: 1.2rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+    }
+
+    .detailed-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .resources-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .badges-showcase {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+
+    .social-links-modern {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-content .container {
+        padding: 1rem;
+    }
+
+    .player-name-hero {
+        font-size: 1.8rem;
+    }
+
+    .player-avatar-hero {
+        width: 100px;
+        height: 100px;
+    }
+
+    .card-body-modern {
+        padding: 1.5rem;
+    }
+
+    .info-item-modern {
+        padding: 0.75rem;
+    }
+
+    .resources-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .preferences-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

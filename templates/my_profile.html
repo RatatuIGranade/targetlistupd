@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+
+{% block title %}Мой профиль - {{ player.nickname }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-lg-4">
+            <div class="profile-sidebar">
+                <!-- Profile Header -->
+                <div class="profile-header text-center p-4 mb-4" 
+                     style="background: linear-gradient(135deg, {{ player.profile_banner_color }}, {{ player.profile_banner_color }}44); border-radius: 15px; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><pattern id=\"stars\" width=\"10\" height=\"10\" patternUnits=\"userSpaceOnUse\"><circle cx=\"5\" cy=\"5\" r=\"1\" fill=\"rgba(255,255,255,0.1)\"/></pattern></defs><rect width=\"100\" height=\"100\" fill=\"url(%23stars)\"/></svg>'); opacity: 0.3;"></div>
+
+                    <div style="position: relative; z-index: 1;">
+                        <img src="{{ player.minecraft_skin_url }}" alt="{{ player.nickname }}" 
+                             class="rounded-circle mb-3" 
+                             style="width: 96px; height: 96px; image-rendering: pixelated; border: 4px solid rgba(255,255,255,0.2);">
+
+                        <h3 class="text-white fw-bold mb-1">
+                            {% if player.nickname_gradient %}
+                            <span style="background: {{ player.nickname_gradient }}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                {{ player.nickname }}
+                            </span>
+                            {% else %}
+                            {{ player.nickname }}
+                            {% endif %}
+                        </h3>
+
+                        {% if player.custom_status %}
+                        <p class="text-white-50 mb-2">{{ player.custom_status }}</p>
+                        {% endif %}
+
+                        <!-- Роль и титул - улучшенное отображение -->
+                        <div class="profile-roles-section mb-4">
+                            <div class="role-container">
+                                <label class="role-label">
+                                    <i class="fas fa-crown text-warning me-2"></i>Текущая роль
+                                </label>
+                                <div class="role-display-container">
+                                    <div class="current-role-display">
+                                        {{ player.role_display_html|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if player.active_custom_title %}
+                            <div class="title-container mt-3">
+                                <label class="role-label">
+                                    <i class="fas fa-medal text-info me-2"></i>Активный титул
+                                </label>
+                                <div class="title-display-container">
+                                    <div class="current-title-display"
+                                         {% if player.active_custom_title.animated %}
+                                         style="background: linear-gradient(45deg, {{ player.active_custom_title.color }}, {{ player.active_custom_title.glow_color or player.active_custom_title.color }}); 
+                                                -webkit-background-clip: text; 
+                                                -webkit-text-fill-color: transparent; 
+                                                background-clip: text; 
+                                                background-size: 200% 200%; 
+                                                animation: titleGradientShift 4s ease-in-out infinite;"
+                                         {% else %}
+                                         style="color: {{ player.active_custom_title.color }};
+                                                {% if player.active_custom_title.glow_color %}
+                                                text-shadow: 0 0 8px {{ player.active_custom_title.glow_color }};
+                                                {% endif %}"
+                                         {% endif %}>
+                                        {{ player.active_custom_title.display_name }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Бейджи игрока -->
+                            {% if player.visible_badges %}
+                            <div class="badges-container mt-3">
+                                <label class="role-label">
+                                    <i class="fas fa-medal text-success me-2"></i>Бейджи
+                                </label>
+                                <div class="badges-display-grid">
+                                    {% for player_badge in player.visible_badges %}
+                                    {% set badge = player_badge.badge %}
+                                    <div class="badge-item-mini" title="{{ badge.description or badge.display_name }}">
+                                        <div class="badge-icon-mini" style="color: {{ badge.color }}; background: {{ badge.background_color if not badge.has_gradient else 'linear-gradient(45deg, ' + badge.gradient_start + ', ' + badge.gradient_end + ')' }};">
+                                            {% if badge.emoji_url %}
+                                                <img src="{{ badge.emoji_url }}" class="badge-emoji-img" alt="{{ badge.display_name }}">
+                                            {% elif badge.emoji %}
+                                                {{ badge.emoji }}
+                                            {% else %}
+                                                <i class="{{ badge.icon }}"></i>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Титул отображается отдельно от роли -->
+                        {% if player.active_custom_title %}
+                        <div class="custom-title mb-2 {% if player.title_gradient %}title-gradient-animated{% endif %}" 
+                             style="{% if player.title_gradient %}background: {{ player.title_gradient }};{% else %}background: linear-gradient(45deg, {{ player.active_custom_title.color }}, {{ player.active_custom_title.glow_color }});{% endif %} -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: bold; font-size: 0.9rem;">
+                            {{ player.active_custom_title.display_name }}
+                        </div>
+                        {% endif %}
+
+                        <div class="level-badge d-inline-flex align-items-center px-3 py-1 bg-dark rounded-pill">
+                            <i class="fas fa-star text-warning me-2"></i>
+                            <span class="text-white">Уровень {{ player.level }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-quick mb-4">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="stat-card text-center p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                                <div class="stat-value text-success fw-bold">{{ player.kills }}</div>
+                                <div class="stat-label small text-muted">Киллы</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card text-center p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                                <div class="stat-value text-warning fw-bold">{{ player.wins }}</div>
+                                <div class="stat-label small text-muted">Победы</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card text-center p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                                <div class="stat-value text-info fw-bold">{{ player.beds_broken }}</div>
+                                <div class="stat-label small text-muted">Кровати</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card text-center p-3" style="background: var(--bg-secondary); border-radius: 10px;">
+                                <div class="stat-value text-primary fw-bold">{{ player.kd_ratio }}</div>
+                                <div class="stat-label small text-muted">K/D</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                {% set social_networks = player.get_social_networks_list() %}
+                {% if player.discord_tag or player.youtube_channel or player.twitch_channel or social_networks %}
+                <div class="social-links-sidebar mb-4">
+                    <h6 class="text-muted mb-3"><i class="fas fa-users me-2"></i>Социальные сети</h6>
+
+                    <!-- Social Links Grid -->
+                    <div class="profile-social-links">
+                        <!-- Legacy fields -->
+                        {% if player.discord_tag %}
+                        <a href="#" class="profile-social-link" title="Discord" aria-label="Discord">
+                            <i class="fab fa-discord"></i>
+                            <span>Discord</span>
+                        </a>
+                        {% endif %}
+                        {% if player.youtube_channel %}
+                        <a href="{{ player.youtube_channel }}" target="_blank" rel="noopener noreferrer" class="profile-social-link" title="YouTube" aria-label="YouTube">
+                            <i class="fab fa-youtube"></i>
+                            <span>YouTube</span>
+                        </a>
+                        {% endif %}
+                        {% if player.twitch_channel %}
+                        <a href="{{ player.twitch_channel }}" target="_blank" rel="noopener noreferrer" class="profile-social-link" title="Twitch" aria-label="Twitch">
+                            <i class="fab fa-twitch"></i>
+                            <span>Twitch</span>
+                        </a>
+                        {% endif %}
+
+                        <!-- Extended social networks -->
+                        {% for network in social_networks %}
+                        <a href="{{ network.value if network.value.startswith('http') else 'https://' + network.value }}" target="_blank" rel="noopener noreferrer" class="profile-social-link" title="{{ network.type.title() }}" aria-label="{{ network.type.title() }}">
+                            {% if network.type == 'discord' %}
+                                <i class="fab fa-discord"></i>
+                            {% elif network.type == 'vk' %}
+                                <i class="fab fa-vk"></i>
+                            {% elif network.type == 'telegram' %}
+                                <i class="fab fa-telegram"></i>
+                            {% elif network.type == 'twitter' %}
+                                <i class="fab fa-x-twitter"></i>
+                            {% elif network.type == 'instagram' %}
+                                <i class="fab fa-instagram"></i>
+                            {% elif network.type == 'tiktok' %}
+                                <i class="fab fa-tiktok"></i>
+                            {% elif network.type == 'steam' %}
+                                <i class="fab fa-steam"></i>
+                            {% else %}
+                                <i class="fas fa-link"></i>
+                            {% endif %}
+                            <span>{{ network.type.title() }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Profile Settings -->
+            <div class="profile-settings mb-4">
+                <div class="modern-card">
+                    <div class="modern-card-header">
+                        <div class="header-content">
+                            <div class="header-icon">
+                                <i class="fas fa-user-edit"></i>
+                            </div>
+                            <div class="header-text">
+                                <h4 class="header-title">Настройки профиля</h4>
+                                <p class="header-subtitle">Персонализируйте свой игровой профиль</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modern-card-body">
+                        <form method="POST" action="{{ url_for('update_profile') }}">
+                            <div class="row g-3">
+                                <!-- Personal Info -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Настоящее имя</label>
+                                    <input type="text" class="form-control" name="real_name" 
+                                           value="{{ player.real_name or '' }}" placeholder="Ваше настоящее имя">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">День рождения</label>
+                                    <input type="date" class="form-control" name="birthday" 
+                                           value="{{ player.birthday.strftime('%Y-%m-%d') if player.birthday else '' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Местоположение</label>
+                                    <input type="text" class="form-control" name="location" 
+                                           value="{{ player.location or '' }}" placeholder="Город, страна">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Пользовательский статус</label>
+                                    <input type="text" class="form-control" name="custom_status" 
+                                           value="{{ player.custom_status or '' }}" placeholder="Ваш статус" maxlength="100">
+                                </div>
+
+                                <!-- Gaming Info -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Любимый сервер</label>
+                                    <input type="text" class="form-control" name="favorite_server" 
+                                           value="{{ player.favorite_server or '' }}" placeholder="Например: Hypixel">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Любимая карта</label>
+                                    <input type="text" class="form-control" name="favorite_map" 
+                                           value="{{ player.favorite_map or '' }}" placeholder="Например: Lighthouse">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Предпочитаемый режим</label>
+                                    <select class="form-select" name="preferred_gamemode">
+                                        <option value="">Выберите режим</option>
+                                        <option value="Solo" {{ 'selected' if player.preferred_gamemode == 'Solo' else '' }}>Solo</option>
+                                        <option value="Doubles" {{ 'selected' if player.preferred_gamemode == 'Doubles' else '' }}>Doubles</option>
+                                        <option value="3v3v3v3" {{ 'selected' if player.preferred_gamemode == '3v3v3v3' else '' }}>3v3v3v3</option>
+                                        <option value="4v4v4v4" {{ 'selected' if player.preferred_gamemode == '4v4v4v4' else '' }}>4v4v4v4</option>
+                                        <option value="3v8" {{ 'selected' if player.preferred_gamemode == '3v8' else '' }}>3v8</option>
+                                        <option value="4v8" {{ 'selected' if player.preferred_gamemode == '4v8' else '' }}>4v8</option>
+                                        <option value="KitPvP" {{ 'selected' if player.preferred_gamemode == 'KitPvP' else '' }}>KitPvP</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Цвет баннера профиля</label>
+                                    <input type="color" class="form-control form-control-color w-100" name="profile_banner_color" 
+                                           value="{{ player.profile_banner_color or '#3498db' }}">
+                                </div>
+
+                                <!-- Extended Social Networks -->
+                                <div class="col-12">
+                                    <label class="form-label">Социальные сети</label>
+                                    <div id="social-networks-container">
+                                        {% set social_networks = player.get_social_networks_list() %}
+                                        {% if social_networks %}
+                                            {% for network in social_networks %}
+                                            <div class="social-network-item d-flex align-items-center mb-2">
+                                                <select class="form-select me-2" name="social_type[]" style="max-width: 150px;">
+                                                    <option value="discord" {% if network.type == 'discord' %}selected{% endif %}>Discord</option>
+                                                    <option value="telegram" {% if network.type == 'telegram' %}selected{% endif %}>Telegram</option>
+                                                    <option value="vk" {% if network.type == 'vk' %}selected{% endif %}>VK</option>
+                                                    <option value="twitter" {% if network.type == 'twitter' %}selected{% endif %}>Twitter</option>
+                                                    <option value="instagram" {% if network.type == 'instagram' %}selected{% endif %}>Instagram</option>
+                                                    <option value="tiktok" {% if network.type == 'tiktok' %}selected{% endif %}>TikTok</option>
+                                                    <option value="steam" {% if network.type == 'steam' %}selected{% endif %}>Steam</option>
+                                                </select>
+                                                <input type="text" class="form-control me-2" name="social_value[]" 
+                                                       value="{{ network.value }}" placeholder="Ссылка или никнейм">
+                                                <button type="button" class="btn btn-danger btn-sm remove-social">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+
+                                    <button type="button" class="btn btn-success btn-sm mt-2" id="add-social">
+                                        <i class="fas fa-plus me-1"></i>Добавить соц.сеть
+                                    </button>
+                                </div>
+
+                                <!-- Bio -->
+                                <div class="col-12">
+                                    <label class="form-label">О себе</label>
+                                    <textarea class="form-control" name="bio" rows="4" 
+                                              placeholder="Расскажите о себе...">{{ player.bio or '' }}</textarea>
+                                </div>
+
+                                <!-- Privacy -->
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" name="profile_is_public" 
+                                               {{ 'checked' if player.profile_is_public else '' }}>
+                                        <label class="form-check-label">
+                                            Публичный профиль (другие игроки могут видеть ваш профиль)
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Сохранить изменения
+                                    </button>
+                                    <a href="{{ url_for('public_profile', player_id=player.id) }}" class="btn btn-outline-info ms-2">
+                                        <i class="fas fa-eye me-2"></i>Просмотреть профиль
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Role & Title Management -->
+            <div class="role-title-quick mb-4">
+                <div class="card bg-gradient border-0" style="background: linear-gradient(135deg, rgba(255,193,7,0.1), rgba(255,87,34,0.1));">
+                    <div class="card-body text-center py-4">
+                        <h4 class="text-warning mb-3">
+                            <i class="fas fa-crown me-2"></i>Роли и титулы
+                        </h4>
+                        <p class="text-muted mb-4">
+                            Настройте свой уникальный стиль и статус в игре
+                        </p>
+                        <a href="{{ url_for('role_management') }}" class="btn btn-warning btn-lg">
+                            <i class="fas fa-edit me-2"></i>Управление ролями и титулами
+                        </a>
+
+                        <!-- Quick Status Display -->
+                        <div class="mt-4">
+                            <div class="row g-3 text-center">
+                                <div class="col-md-4">
+                                    <div class="quick-status">
+                                        <small class="text-muted d-block">Текущая роль</small>
+                                        <div class="fw-bold">
+                                            {{ player.role_display_html|safe }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="quick-status">
+                                        <small class="text-muted d-block">Активный титул</small>
+                                        <div class="fw-bold">
+                                            {% if player.active_custom_title %}
+                                                <span style="background: linear-gradient(45deg, {{ player.active_custom_title.color }}, {{ player.active_custom_title.glow_color }}); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                                    {{ player.active_custom_title.display_name }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">Нет титула</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="quick-status">
+                                        <small class="text-muted d-block">Доступно функций</small>
+                                        <div class="fw-bold">
+                                            {% if player.custom_role_purchased or player.level >= 500 %}
+                                                <span class="text-success">{{ player.custom_role_features_available.keys()|length }} функций</span>
+                                            {% else %}
+                                                <span class="text-warning">Базовый набор</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/custom-role-preview.js') }}"></script>
+{% endblock %}

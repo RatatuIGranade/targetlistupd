@@ -1,0 +1,239 @@
+
+{% extends "base.html" %}
+
+{% block title %}Управление ролями и титулами{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="page-header text-center mb-5">
+        <h1 class="display-4 fw-bold">
+            <i class="fas fa-crown text-warning me-3 glow-effect"></i>
+            Управление ролями и титулами
+        </h1>
+        <p class="lead text-muted">Настройте свою роль и выберите титул</p>
+        <div class="header-divider mx-auto"></div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <!-- Current Status -->
+        <div class="col-12">
+            <div class="current-status-card">
+                <div class="card">
+                    <div class="card-body text-center py-4">
+                        <h2 class="fw-bold text-white">{{ current_player.nickname }}</h2>
+                        
+                        <!-- Current Role -->
+                        <div class="current-role mb-3">
+                            <span class="badge fs-6 px-3 py-2" style="background-color: {{ current_player.role_color }}; color: white;">
+                                {% if current_player.role_icon %}
+                                <i class="{{ current_player.role_icon }} me-2"></i>
+                                {% endif %}
+                                {{ current_player.display_role }}
+                            </span>
+                        </div>
+                        
+                        <!-- Current Title -->
+                        {% if current_player.active_title %}
+                        <div class="current-title mb-3">
+                            <span class="badge fs-6 px-3 py-2" style="background-color: {{ current_player.active_title.color }}; color: white;">
+                                {% if current_player.active_title.icon %}
+                                <i class="{{ current_player.active_title.icon }} me-2"></i>
+                                {% endif %}
+                                {{ current_player.active_title.display_name }}
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Player Stats -->
+                        <div class="mt-3">
+                            <span class="badge bg-warning text-dark me-2">Уровень {{ current_player.level }}</span>
+                            <span class="badge bg-info me-2">{{ current_player.coins }} койнов</span>
+                            <span class="badge bg-success">{{ current_player.reputation }} репутации</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Titles Management -->
+        <div class="col-lg-6">
+            <div class="management-section">
+                <div class="section-header">
+                    <h4><i class="fas fa-medal text-warning me-2"></i>Титулы</h4>
+                </div>
+
+                <!-- Active Title Form -->
+                <form method="POST" action="{{ url_for('activate_title') }}" class="mb-4">
+                    <div class="mb-3">
+                        <label class="form-label">Активный титул:</label>
+                        <select name="title_name" class="form-select" onchange="this.form.submit()">
+                            <option value="">Без титула</option>
+                            {% for player_title in unlocked_titles %}
+                            <option value="{{ player_title.title.name }}" 
+                                    {{ 'selected' if player_title.is_active else '' }}>
+                                {{ player_title.title.display_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+
+                <!-- Available Titles -->
+                <div class="titles-grid">
+                    {% for title in available_titles %}
+                    {% set player_title = unlocked_titles | selectattr('title_id', 'equalto', title.id) | first %}
+                    <div class="title-card {{ 'unlocked' if player_title else 'locked' }}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="title-display" style="color: {{ title.color }};">
+                                    {% if title.icon %}
+                                    <i class="{{ title.icon }} me-2"></i>
+                                    {% endif %}
+                                    {{ title.display_name }}
+                                </div>
+                                <div class="title-rarity">
+                                    <span class="badge bg-secondary">{{ title.rarity.title() }}</span>
+                                </div>
+                            </div>
+                            <div class="title-status">
+                                {% if player_title %}
+                                <i class="fas fa-check-circle text-success" title="Разблокирован"></i>
+                                {% else %}
+                                <i class="fas fa-lock text-muted" title="Заблокирован"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles Information -->
+        <div class="col-lg-6">
+            <div class="management-section">
+                <div class="section-header">
+                    <h4><i class="fas fa-user-tag text-info me-2"></i>Информация о ролях</h4>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Роли назначаются администраторами. Обратитесь к админу для получения специальной роли.
+                </div>
+
+                <!-- Available Roles List -->
+                <div class="roles-grid">
+                    {% for role in available_roles %}
+                    <div class="role-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="role-display" style="color: {{ role.color }};">
+                                    {% if role.icon %}
+                                    <i class="{{ role.icon }} me-2"></i>
+                                    {% endif %}
+                                    {{ role.display_name }}
+                                </div>
+                                <div class="role-priority">
+                                    <small class="text-muted">Приоритет: {{ role.priority }}</small>
+                                </div>
+                            </div>
+                            <div class="role-status">
+                                {% if role.is_admin %}
+                                <span class="badge bg-danger">Админ</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Игрок</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Profile -->
+    <div class="text-center mt-5">
+        <a href="{{ url_for('my_profile') }}" class="btn btn-secondary btn-lg">
+            <i class="fas fa-arrow-left me-2"></i>Вернуться в профиль
+        </a>
+    </div>
+</div>
+
+<style>
+.page-header {
+    background: linear-gradient(135deg, rgba(255,193,7,0.1), rgba(255,87,34,0.1));
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.header-divider {
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(45deg, #ffc107, #ff5722);
+    border-radius: 2px;
+    margin-top: 1rem;
+}
+
+.current-status-card .card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.management-section {
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    padding: 2rem;
+    height: 100%;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.section-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+}
+
+.titles-grid, .roles-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.title-card, .role-card {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.title-card.unlocked {
+    border-color: #28a745;
+    background: rgba(40,167,69,0.1);
+}
+
+.title-card.locked {
+    opacity: 0.6;
+}
+
+.title-card:hover, .role-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.title-display, .role-display {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.glow-effect {
+    text-shadow: 0 0 10px currentColor;
+}
+</style>
+{% endblock %}

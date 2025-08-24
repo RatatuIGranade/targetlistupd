@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Управление титулами{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="page-title">
+            <i class="fas fa-medal text-warning me-2"></i>Управление титулами
+        </h2>
+        <div class="btn-group">
+            <button class="btn btn-success" data-bs-target="#createTitleModal" data-bs-toggle="modal">
+                <i class="fas fa-plus me-2"></i>Создать титул
+            </button>
+            <a href="{{ url_for('admin') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Назад
+            </a>
+        </div>
+    </div>
+
+    <!-- Unlock Title Section -->
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-header">
+            <h5><i class="fas fa-unlock me-2"></i>Разблокировать титул для игрока</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('unlock_title') }}">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <select name="player_id" class="form-select" required>
+                            <option value="">Выберите игрока</option>
+                            {% for player in players %}
+                            <option value="{{ player.id }}">{{ player.nickname }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <select name="title_name" class="form-select" required>
+                            <option value="">Выберите титул</option>
+                            {% for title in titles %}
+                            <option value="{{ title.name }}">{{ title.display_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-unlock me-2"></i>Разблокировать
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Titles List -->
+    <div class="card bg-dark border-secondary">
+        <div class="card-header">
+            <h5><i class="fas fa-list me-2"></i>Существующие титулы</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead class="table-warning">
+                        <tr>
+                            <th>Титул</th>
+                            <th>Цвет</th>
+                            <th>Редкость</th>
+                            <th>Условие</th>
+                            <th>Создан</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for title in titles %}
+                        <tr>
+                            <td>
+                                <span style="color: {{ title.color }};">
+                                    {% if title.icon %}
+                                    <i class="{{ title.icon }} me-2"></i>
+                                    {% endif %}
+                                    {{ title.display_name }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: {{ title.color }};">{{ title.color }}</span>
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if title.rarity == 'common' %}bg-secondary
+                                    {% elif title.rarity == 'rare' %}bg-info
+                                    {% elif title.rarity == 'epic' %}bg-warning
+                                    {% elif title.rarity == 'legendary' %}bg-danger
+                                    {% endif %}">
+                                    {{ title.rarity.title() }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if title.unlock_condition %}
+                                <small class="text-muted">{{ title.unlock_condition }}</small>
+                                {% else %}
+                                <span class="text-muted">Нет условий</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ title.created_at.strftime('%d.%m.%Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Title Modal -->
+<div class="modal fade" id="createTitleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Создать новый титул</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_title') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Системное название:</label>
+                        <input type="text" name="name" class="form-control" required>
+                        <small class="text-muted">Только английские буквы и подчеркивания</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Отображаемое название:</label>
+                        <input type="text" name="display_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Цвет:</label>
+                        <input type="color" name="color" class="form-control" value="#ffc107">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Иконка (FontAwesome):</label>
+                        <input type="text" name="icon" class="form-control" placeholder="fas fa-medal">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Редкость:</label>
+                        <select name="rarity" class="form-select">
+                            <option value="common">Обычная</option>
+                            <option value="rare">Редкая</option>
+                            <option value="epic">Эпическая</option>
+                            <option value="legendary">Легендарная</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-success">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,714 @@
+
+{% extends "base.html" %}
+
+{% block title %}Вход в Elite Squad{% endblock %}
+
+{% block content %}
+<div class="login-page-container">
+    <!-- Animated Background -->
+    <div class="login-background">
+        <div class="floating-particles">
+            <div class="particle particle-1"></div>
+            <div class="particle particle-2"></div>
+            <div class="particle particle-3"></div>
+            <div class="particle particle-4"></div>
+            <div class="particle particle-5"></div>
+            <div class="particle particle-6"></div>
+        </div>
+        <div class="gradient-overlay"></div>
+    </div>
+
+    <div class="login-content">
+        <div class="container-fluid h-100">
+            <div class="row h-100 align-items-center justify-content-center">
+                <div class="col-xl-4 col-lg-5 col-md-6 col-sm-8">
+                    <!-- Login Card -->
+                    <div class="login-card-modern">
+                        <!-- Header -->
+                        <div class="login-header-modern">
+                            <div class="logo-container">
+                                <div class="logo-glow"></div>
+                                <i class="fas fa-crown logo-icon"></i>
+                            </div>
+                            <h1 class="login-title">Добро пожаловать</h1>
+                            <h2 class="login-subtitle">в Elite Squad</h2>
+                            <p class="login-description">
+                                Войдите в свой аккаунт для доступа к квестам, достижениям и персонализации профиля
+                            </p>
+                        </div>
+
+                        <!-- Form -->
+                        <form method="POST" class="login-form-modern">
+                            <div class="form-group-modern">
+                                <label for="nickname" class="form-label-modern">
+                                    <i class="fas fa-user"></i>
+                                    Игровой никнейм
+                                </label>
+                                <div class="input-container-modern">
+                                    <input type="text" 
+                                           class="form-control-modern" 
+                                           id="nickname" 
+                                           name="nickname" 
+                                           required 
+                                           placeholder="Введите ваш ник в Minecraft" 
+                                           autocomplete="username">
+                                    <div class="input-border"></div>
+                                </div>
+                                <small class="form-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    Ваш ник должен быть в таблице лидеров
+                                </small>
+                            </div>
+
+                            <div class="form-group-modern">
+                                <label for="password" class="form-label-modern">
+                                    <i class="fas fa-lock"></i>
+                                    Пароль
+                                </label>
+                                <div class="input-container-modern">
+                                    <input type="password" 
+                                           class="form-control-modern" 
+                                           id="password" 
+                                           name="password" 
+                                           required
+                                           placeholder="Введите пароль">
+                                    <div class="input-border"></div>
+                                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                                        <i class="fas fa-eye" id="password-eye"></i>
+                                    </button>
+                                </div>
+                                <small class="form-hint">
+                                    <i class="fas fa-key"></i>
+                                    При первом входе введите желаемый пароль для установки
+                                </small>
+                            </div>
+
+                            <button type="submit" class="btn-login-modern">
+                                <span class="btn-content">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span class="btn-text">Войти в аккаунт</span>
+                                </span>
+                                <div class="btn-ripple"></div>
+                            </button>
+                        </form>
+
+                        <!-- Features -->
+                        <div class="login-features">
+                            <h3 class="features-title">Что вас ждёт:</h3>
+                            <div class="features-grid">
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-tasks"></i>
+                                    </div>
+                                    <div class="feature-text">
+                                        <h4>Квесты</h4>
+                                        <p>Выполняйте задания и получайте награды</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                    <div class="feature-text">
+                                        <h4>Достижения</h4>
+                                        <p>Разблокируйте уникальные достижения</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-palette"></i>
+                                    </div>
+                                    <div class="feature-text">
+                                        <h4>Персонализация</h4>
+                                        <p>Настройте свой профиль и стиль</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="feature-text">
+                                        <h4>Кланы</h4>
+                                        <p>Присоединяйтесь к сообществу игроков</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="login-footer-modern">
+                            <a href="{{ url_for('index') }}" class="back-link">
+                                <i class="fas fa-arrow-left"></i>
+                                Вернуться к лидерборду
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modern Login Page Styles */
+.login-page-container {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 30%, #16213e 70%, #0f172a 100%);
+}
+
+.login-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.floating-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    background: linear-gradient(45deg, rgba(255, 193, 7, 0.3), rgba(255, 107, 53, 0.2));
+    border-radius: 50%;
+    animation: particleFloat 8s ease-in-out infinite;
+}
+
+.particle-1 {
+    width: 80px;
+    height: 80px;
+    top: 5%;
+    left: 8%;
+    animation-delay: 0s;
+    background: linear-gradient(45deg, rgba(255, 193, 7, 0.4), rgba(255, 107, 53, 0.3));
+}
+
+.particle-2 {
+    width: 60px;
+    height: 60px;
+    top: 15%;
+    right: 12%;
+    animation-delay: 1.2s;
+    background: linear-gradient(45deg, rgba(0, 123, 255, 0.4), rgba(72, 219, 251, 0.3));
+}
+
+.particle-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 15%;
+    left: 15%;
+    animation-delay: 2.4s;
+    background: linear-gradient(45deg, rgba(138, 43, 226, 0.4), rgba(147, 112, 219, 0.3));
+}
+
+.particle-4 {
+    width: 45px;
+    height: 45px;
+    top: 55%;
+    right: 25%;
+    animation-delay: 3.6s;
+    background: linear-gradient(45deg, rgba(40, 167, 69, 0.4), rgba(72, 219, 148, 0.3));
+}
+
+.particle-5 {
+    width: 70px;
+    height: 70px;
+    bottom: 25%;
+    right: 8%;
+    animation-delay: 4.8s;
+    background: linear-gradient(45deg, rgba(220, 53, 69, 0.4), rgba(255, 107, 107, 0.3));
+}
+
+.particle-6 {
+    width: 55px;
+    height: 55px;
+    top: 35%;
+    left: 3%;
+    animation-delay: 6s;
+    background: linear-gradient(45deg, rgba(255, 193, 7, 0.3), rgba(255, 215, 0, 0.2));
+}
+
+@keyframes particleFloat {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.3;
+    }
+    33% {
+        transform: translateY(-30px) rotate(120deg);
+        opacity: 0.7;
+    }
+    66% {
+        transform: translateY(15px) rotate(240deg);
+        opacity: 0.5;
+    }
+}
+
+.gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 30% 70%, rgba(255, 193, 7, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(0, 123, 255, 0.1) 0%, transparent 50%);
+}
+
+.login-content {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.login-card-modern {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    animation: cardSlideIn 0.8s ease-out;
+}
+
+@keyframes cardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.login-header-modern {
+    text-align: center;
+    padding: 3rem 2rem 2rem;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 107, 53, 0.05));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.logo-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 2rem;
+}
+
+.logo-glow {
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -15px;
+    background: radial-gradient(circle, rgba(255, 193, 7, 0.4), transparent);
+    border-radius: 50%;
+    filter: blur(15px);
+    animation: logoGlow 3s ease-in-out infinite alternate;
+}
+
+.logo-icon {
+    font-size: 4rem;
+    color: #ffd700;
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    animation: logoFloat 4s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+    from { opacity: 0.3; transform: scale(1); }
+    to { opacity: 0.6; transform: scale(1.1); }
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+}
+
+.login-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, #fff, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffd700;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+.login-description {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.login-form-modern {
+    padding: 2rem;
+}
+
+.form-group-modern {
+    margin-bottom: 2rem;
+}
+
+.form-label-modern {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.form-label-modern i {
+    color: #ffd700;
+}
+
+.input-container-modern {
+    position: relative;
+}
+
+.form-control-modern {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.form-control-modern:focus {
+    outline: none;
+    border-color: #ffd700;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.form-control-modern::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.input-border {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ffd700, #ff8c00);
+    transition: width 0.3s ease;
+}
+
+.form-control-modern:focus + .input-border {
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: #ffd700;
+}
+
+.form-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.form-hint i {
+    color: #17a2b8;
+}
+
+.btn-login-modern {
+    width: 100%;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 15px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+}
+
+.btn-login-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(0, 123, 255, 0.6);
+    background: linear-gradient(135deg, #0056b3, #004085);
+}
+
+.btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    z-index: 2;
+}
+
+.btn-ripple {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.6s ease;
+}
+
+.btn-login-modern:active .btn-ripple {
+    width: 300px;
+    height: 300px;
+}
+
+.login-features {
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.features-title {
+    text-align: center;
+    color: #ffd700;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 193, 7, 0.3);
+    transform: translateY(-2px);
+}
+
+.feature-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(45deg, #ffd700, #ff8c00);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #000;
+    flex-shrink: 0;
+}
+
+.feature-text h4 {
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.feature-text p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.login-footer-modern {
+    padding: 1.5rem 2rem;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.back-link:hover {
+    color: #ffd700;
+    transform: translateX(-3px);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .login-card-modern {
+        margin: 1rem;
+        border-radius: 20px;
+    }
+    
+    .login-header-modern {
+        padding: 2rem 1.5rem 1.5rem;
+    }
+    
+    .login-title {
+        font-size: 2rem;
+    }
+    
+    .login-subtitle {
+        font-size: 1.4rem;
+    }
+    
+    .logo-icon {
+        font-size: 3rem;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .feature-item {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .login-form-modern,
+    .login-features {
+        padding: 1.5rem;
+    }
+    
+    .form-control-modern {
+        padding: 0.875rem 1rem;
+    }
+    
+    .btn-login-modern {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+}
+</style>
+
+<script>
+// Auto-focus nickname field
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('nickname').focus();
+    
+    // Add entrance animation delay to features
+    const features = document.querySelectorAll('.feature-item');
+    features.forEach((feature, index) => {
+        feature.style.animationDelay = `${index * 0.1}s`;
+        feature.style.animation = 'fadeInUp 0.6s ease forwards';
+    });
+});
+
+// Password toggle functionality
+function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const passwordEye = document.getElementById('password-eye');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        passwordEye.classList.remove('fa-eye');
+        passwordEye.classList.add('fa-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        passwordEye.classList.remove('fa-eye-slash');
+        passwordEye.classList.add('fa-eye');
+    }
+}
+
+// Form enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.login-form-modern');
+    const submitBtn = document.querySelector('.btn-login-modern');
+    
+    form.addEventListener('submit', function(e) {
+        submitBtn.style.transform = 'scale(0.98)';
+        setTimeout(() => {
+            submitBtn.style.transform = '';
+        }, 150);
+    });
+    
+    // Input animations
+    const inputs = document.querySelectorAll('.form-control-modern');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            if (!this.value) {
+                this.parentElement.classList.remove('focused');
+            }
+        });
+    });
+});
+
+// Add fadeInUp animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

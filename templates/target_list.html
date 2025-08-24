@@ -1,0 +1,632 @@
+{% extends "base.html" %}
+
+{% block title %}Таргет-лист - Elite Squad{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Additional inline styles for target list specific effects */
+.particle-system {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.floating-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #dc3545;
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="target-list-container">
+    <!-- Header with Animated Skull -->
+    <div class="target-header">
+        <div class="skull-container" id="mainSkull">
+            <div class="skull-glow"></div>
+            <div class="skull-icon">
+                <i class="fas fa-skull"></i>
+            </div>
+            <div class="skull-particles" id="skullParticles"></div>
+        </div>
+        <h1 class="target-title">ТАРГЕТ-ЛИСТ</h1>
+        <p class="target-subtitle">Клан Elite Squad - Список целей с различных серверов</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="target-controls">
+        <div class="control-group">
+            <button class="btn btn-danger btn-glow" id="addTargetBtn">
+                <i class="fas fa-plus me-2"></i>Добавить цель
+            </button>
+        </div>
+        <div class="filters-group">
+            <select class="form-select target-filter" id="gamemodeFilter">
+                <option value="">Все режимы</option>
+                <option value="bedwars">Bedwars</option>
+                <option value="kitpvp">KitPVP</option>
+                <option value="skywars">SkyWars</option>
+                <option value="bridgefight">BridgeFight</option>
+                <option value="sumo">Sumo</option>
+                <option value="fireball_fight">Fireball Fight</option>
+                <option value="bridge">Bridge</option>
+            </select>
+            <input type="text" class="form-control target-filter" id="searchFilter" placeholder="Поиск по нику...">
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="container mb-4">
+        <div class="row">
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="stat-number" id="totalTargets">0</div>
+                    <div class="stat-label">Всего целей</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="stat-number" id="activeTargets">0</div>
+                    <div class="stat-label">Активных</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="stat-number" id="completedTargets">0</div>
+                    <div class="stat-label">Устранено</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="stat-number" id="todayTargets">0</div>
+                    <div class="stat-label">За сегодня</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Target List -->
+    <div class="target-list" id="targetList">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="target-loading" id="loadingSpinner" style="display: none;">
+                        <div class="loading-skull">
+                            <i class="fas fa-skull"></i>
+                        </div>
+                    </div>
+                    <div id="targetItems"></div>
+                    <div class="text-center mt-4" id="emptyState">
+                        <i class="fas fa-skull-crossbones" style="font-size: 3rem; color: rgba(220, 53, 69, 0.5); margin-bottom: 1rem;"></i>
+                        <h4 style="color: rgba(255, 255, 255, 0.7);">Список целей пуст</h4>
+                        <p style="color: rgba(255, 255, 255, 0.5);">Добавьте новые цели для отслеживания</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Target Modal -->
+<div class="modal fade target-modal" id="addTargetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header target-modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-crosshairs me-2 text-danger"></i>
+                    Добавить новую цель
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTargetForm">
+                    <div class="mb-3">
+                        <label for="targetNickname" class="form-label">
+                            <i class="fas fa-user me-2"></i>Никнейм
+                        </label>
+                        <input type="text" class="form-control target-input" id="targetNickname" 
+                               placeholder="Введите никнейм игрока" maxlength="20" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="targetGamemode" class="form-label">
+                            <i class="fas fa-gamepad me-2"></i>Режим игры
+                        </label>
+                        <select class="form-select target-input" id="targetGamemode" required>
+                            <option value="">Выберите режим</option>
+                            <option value="bedwars">Bedwars</option>
+                            <option value="kitpvp">KitPVP</option>
+                            <option value="skywars">SkyWars</option>
+                            <option value="bridgefight">BridgeFight</option>
+                            <option value="sumo">Sumo</option>
+                            <option value="fireball_fight">Fireball Fight</option>
+                            <option value="bridge">Bridge</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="targetServerIP" class="form-label">
+                            <i class="fas fa-server me-2"></i>IP сервера
+                        </label>
+                        <input type="text" class="form-control target-input" id="targetServerIP" 
+                               placeholder="Например: hypixel.net, mc.hypixel.net" maxlength="100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="targetReason" class="form-label">
+                            <i class="fas fa-scroll me-2"></i>Причина
+                        </label>
+                        <textarea class="form-control target-input" id="targetReason" rows="3" 
+                                  placeholder="Укажите причину добавления в список" 
+                                  maxlength="100" required></textarea>
+                        <div class="char-counter">
+                            <span id="reasonLength">0</span>/100
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer target-modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="submit" form="addTargetForm" class="btn btn-danger btn-glow">
+                    <i class="fas fa-plus me-2"></i>Добавить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Target Modal -->
+<div class="modal fade target-modal" id="editTargetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header target-modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2 text-warning"></i>
+                    Редактировать цель
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTargetForm">
+                    <input type="hidden" id="editTargetId">
+                    <div class="mb-3">
+                        <label for="editTargetNickname" class="form-label">
+                            <i class="fas fa-user me-2"></i>Никнейм
+                        </label>
+                        <input type="text" class="form-control target-input" id="editTargetNickname" 
+                               placeholder="Введите никнейм игрока" maxlength="20" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTargetGamemode" class="form-label">
+                            <i class="fas fa-gamepad me-2"></i>Режим игры
+                        </label>
+                        <select class="form-select target-input" id="editTargetGamemode" required>
+                            <option value="">Выберите режим</option>
+                            <option value="bedwars">Bedwars</option>
+                            <option value="kitpvp">KitPVP</option>
+                            <option value="skywars">SkyWars</option>
+                            <option value="bridgefight">BridgeFight</option>
+                            <option value="sumo">Sumo</option>
+                            <option value="fireball_fight">Fireball Fight</option>
+                            <option value="bridge">Bridge</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTargetServerIP" class="form-label">
+                            <i class="fas fa-server me-2"></i>IP сервера
+                        </label>
+                        <input type="text" class="form-control target-input" id="editTargetServerIP" 
+                               placeholder="Например: hypixel.net, mc.hypixel.net" maxlength="100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTargetReason" class="form-label">
+                            <i class="fas fa-scroll me-2"></i>Причина
+                        </label>
+                        <textarea class="form-control target-input" id="editTargetReason" rows="3" 
+                                  placeholder="Укажите причину добавления в список" 
+                                  maxlength="100" required></textarea>
+                        <div class="char-counter">
+                            <span id="editReasonLength">0</span>/100
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer target-modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="submit" form="editTargetForm" class="btn btn-warning">
+                    <i class="fas fa-save me-2"></i>Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade target-modal" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header target-modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                    Подтверждение
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer target-modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmAction">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+class TargetListManager {
+    constructor() {
+        this.targets = [];
+        this.filteredTargets = [];
+        this.init();
+    }
+
+    init() {
+        this.loadTargets();
+        this.setupEventListeners();
+        this.updateStats();
+        this.createParticleSystem();
+    }
+
+    createParticleSystem() {
+        const particleSystem = document.createElement('div');
+        particleSystem.className = 'particle-system';
+        document.querySelector('.target-list-container').appendChild(particleSystem);
+
+        // Create floating particles
+        setInterval(() => {
+            this.createFloatingParticle(particleSystem);
+        }, 2000);
+    }
+
+    createFloatingParticle(container) {
+        const particle = document.createElement('div');
+        particle.className = 'floating-particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.bottom = '0px';
+
+        const animation = particle.animate([
+            { transform: 'translateY(0px)', opacity: 0 },
+            { transform: 'translateY(-50px)', opacity: 1, offset: 0.1 },
+            { transform: 'translateY(-100vh)', opacity: 0 }
+        ], {
+            duration: 8000,
+            easing: 'ease-out'
+        });
+
+        container.appendChild(particle);
+
+        animation.onfinish = () => {
+            particle.remove();
+        };
+    }
+
+    createSkullParticles() {
+        const container = document.getElementById('skullParticles');
+        const particles = 8;
+
+        for (let i = 0; i < particles; i++) {
+            setTimeout(() => {
+                const particle = document.createElement('div');
+                particle.style.cssText = `
+                    position: absolute;
+                    width: 6px;
+                    height: 6px;
+                    background: #dc3545;
+                    border-radius: 50%;
+                    pointer-events: none;
+                    left: ${20 + Math.random() * 60}%;
+                    top: ${20 + Math.random() * 60}%;
+                    opacity: 0;
+                    box-shadow: 0 0 10px #dc3545;
+                `;
+
+                particle.animate([
+                    { opacity: 0, transform: 'translateY(0px) rotate(0deg) scale(0.5)' },
+                    { opacity: 1, transform: 'translateY(-30px) rotate(180deg) scale(1)' },
+                    { opacity: 0, transform: 'translateY(-60px) rotate(360deg) scale(0.2)' }
+                ], {
+                    duration: 2000,
+                    easing: 'ease-out'
+                }).onfinish = () => particle.remove();
+
+                container.appendChild(particle);
+            }, i * 100);
+        }
+    }
+
+    loadTargets() {
+        // Mock data for demonstration
+        this.targets = [
+            {
+                id: 1,
+                nickname: "TestPlayer1",
+                gamemode: "bedwars",
+                serverIP: "hypixel.net",
+                reason: "Использование читов",
+                dateAdded: new Date(),
+                status: "active",
+                priority: "high"
+            },
+            {
+                id: 2,
+                nickname: "TestPlayer2",
+                gamemode: "kitpvp",
+                serverIP: "mc.minemen.club",
+                reason: "Токсичное поведение",
+                dateAdded: new Date(Date.now() - 86400000),
+                status: "active", 
+                priority: "medium"
+            }
+        ];
+
+        this.filteredTargets = [...this.targets];
+        this.renderTargets();
+        this.updateStats();
+    }
+
+    renderTargets() {
+        const container = document.getElementById('targetItems');
+        const emptyState = document.getElementById('emptyState');
+
+        if (this.filteredTargets.length === 0) {
+            container.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+
+        container.innerHTML = this.filteredTargets.map((target, index) => `
+            <div class="target-item" style="animation-delay: ${index * 0.1}s">
+                <div class="target-item-header">
+                    <div class="d-flex align-items-center">
+                        <div class="target-nickname me-3">${target.nickname}</div>
+                        <div class="target-gamemode-badge me-2">
+                            <span class="badge bg-info">${target.gamemode}</span>
+                        </div>
+                    </div>
+                    <div class="target-meta">
+                        <span class="badge bg-${target.priority === 'high' ? 'danger' : target.priority === 'medium' ? 'warning' : 'secondary'} me-2">
+                            ${target.priority === 'high' ? 'Высокий' : target.priority === 'medium' ? 'Средний' : 'Низкий'}
+                        </span>
+                        <small class="text-muted">${target.dateAdded.toLocaleDateString()}</small>
+                    </div>
+                </div>
+                <div class="target-server-info mb-2">
+                    <i class="fas fa-server me-2 text-muted"></i>
+                    <span class="text-muted">${target.serverIP}</span>
+                </div>
+                <div class="target-reason mb-3">${target.reason}</div>
+                <div class="target-actions">
+                    <button class="btn btn-sm btn-outline-warning me-2" onclick="targetManager.editTarget(${target.id})">
+                        <i class="fas fa-edit me-1"></i>Изменить
+                    </button>
+                    <button class="btn btn-sm btn-outline-success me-2" onclick="targetManager.markComplete(${target.id})">
+                        <i class="fas fa-check me-1"></i>Устранен
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="targetManager.deleteTarget(${target.id})">
+                        <i class="fas fa-trash me-1"></i>Удалить
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    updateStats() {
+        document.getElementById('totalTargets').textContent = this.targets.length;
+        document.getElementById('activeTargets').textContent = this.targets.filter(t => t.status === 'active').length;
+        document.getElementById('completedTargets').textContent = this.targets.filter(t => t.status === 'completed').length;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        document.getElementById('todayTargets').textContent = this.targets.filter(t => t.dateAdded >= today).length;
+    }
+
+    setupEventListeners() {
+        // Add target button
+        document.getElementById('addTargetBtn').addEventListener('click', () => {
+            const modal = new bootstrap.Modal(document.getElementById('addTargetModal'));
+            modal.show();
+        });
+
+        // Form submissions
+        document.getElementById('addTargetForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleAddTarget();
+        });
+
+        document.getElementById('editTargetForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleEditTarget();
+        });
+
+        // Character counters
+        document.getElementById('targetReason').addEventListener('input', (e) => {
+            document.getElementById('reasonLength').textContent = e.target.value.length;
+        });
+
+        document.getElementById('editTargetReason').addEventListener('input', (e) => {
+            document.getElementById('editReasonLength').textContent = e.target.value.length;
+        });
+
+        // Filters
+        document.getElementById('gamemodeFilter').addEventListener('change', () => this.applyFilters());
+        document.getElementById('searchFilter').addEventListener('input', () => this.applyFilters());
+
+        // Main skull hover effects
+        const mainSkull = document.getElementById('mainSkull');
+        mainSkull.addEventListener('mouseenter', () => {
+            this.createSkullParticles();
+        });
+
+        // Glitch effect on skull click
+        mainSkull.addEventListener('click', () => {
+            this.showSuccessAnimation();
+        });
+    }
+
+    handleAddTarget() {
+        const nickname = document.getElementById('targetNickname').value;
+        const gamemode = document.getElementById('targetGamemode').value;
+        const serverIP = document.getElementById('targetServerIP').value;
+        const reason = document.getElementById('targetReason').value;
+
+        if (!nickname || !gamemode || !serverIP || !reason) return;
+
+        const newTarget = {
+            id: Date.now(),
+            nickname,
+            gamemode,
+            serverIP,
+            reason,
+            dateAdded: new Date(),
+            status: 'active',
+            priority: 'medium'
+        };
+
+        this.targets.unshift(newTarget);
+        this.applyFilters();
+        this.updateStats();
+
+        // Close modal and reset form
+        bootstrap.Modal.getInstance(document.getElementById('addTargetModal')).hide();
+        document.getElementById('addTargetForm').reset();
+        document.getElementById('reasonLength').textContent = '0';
+
+        this.showSuccessAnimation();
+    }
+
+    handleEditTarget() {
+        const id = parseInt(document.getElementById('editTargetId').value);
+        const nickname = document.getElementById('editTargetNickname').value;
+        const gamemode = document.getElementById('editTargetGamemode').value;
+        const serverIP = document.getElementById('editTargetServerIP').value;
+        const reason = document.getElementById('editTargetReason').value;
+
+        const targetIndex = this.targets.findIndex(t => t.id === id);
+        if (targetIndex === -1) return;
+
+        this.targets[targetIndex] = {
+            ...this.targets[targetIndex],
+            nickname,
+            gamemode,
+            serverIP,
+            reason
+        };
+
+        this.applyFilters();
+        bootstrap.Modal.getInstance(document.getElementById('editTargetModal')).hide();
+    }
+
+    applyFilters() {
+        const gamemodeFilter = document.getElementById('gamemodeFilter').value;
+        const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+
+        this.filteredTargets = this.targets.filter(target => {
+            const matchesGamemode = !gamemodeFilter || target.gamemode === gamemodeFilter;
+            const matchesSearch = !searchFilter || target.nickname.toLowerCase().includes(searchFilter);
+            return matchesGamemode && matchesSearch;
+        });
+
+        this.renderTargets();
+    }
+
+    showConfirmation(message, callback) {
+        document.getElementById('confirmMessage').textContent = message;
+
+        const confirmBtn = document.getElementById('confirmAction');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+        newConfirmBtn.addEventListener('click', () => {
+            callback();
+            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        modal.show();
+    }
+
+    showSuccessAnimation() {
+        const skull = document.getElementById('mainSkull');
+        skull.style.animation = 'skullGlowIntense 0.5s ease-in-out 3 alternate, skullPulse 2s ease-in-out infinite alternate 1.5s';
+
+        setTimeout(() => {
+            skull.style.animation = '';
+        }, 3000);
+    }
+
+    editTarget(id) {
+        const target = this.targets.find(t => t.id === id);
+        if (!target) return;
+
+        document.getElementById('editTargetId').value = target.id;
+        document.getElementById('editTargetNickname').value = target.nickname;
+        document.getElementById('editTargetGamemode').value = target.gamemode;
+        document.getElementById('editTargetServerIP').value = target.serverIP;
+        document.getElementById('editTargetReason').value = target.reason;
+        document.getElementById('editReasonLength').textContent = target.reason.length;
+
+        const modal = new bootstrap.Modal(document.getElementById('editTargetModal'));
+        modal.show();
+    }
+
+    deleteTarget(id) {
+        const target = this.targets.find(t => t.id === id);
+        if (!target) return;
+
+        this.showConfirmation(
+            `Удалить цель "${target.nickname}" из списка?`,
+            () => {
+                const targetElement = document.querySelector(`[onclick*="${id}"]`).closest('.target-item');
+                targetElement.classList.add('target-removing');
+
+                setTimeout(() => {
+                    this.targets = this.targets.filter(t => t.id !== id);
+                    this.applyFilters();
+                    this.updateStats();
+                }, 500);
+            }
+        );
+    }
+
+    markComplete(id) {
+        const target = this.targets.find(t => t.id === id);
+        if (!target) return;
+
+        this.showConfirmation(
+            `Отметить цель "${target.nickname}" как устраненную?`,
+            () => {
+                target.status = 'completed';
+                this.applyFilters();
+                this.updateStats();
+                this.showSuccessAnimation();
+            }
+        );
+    }
+}
+
+// Initialize the target list manager
+let targetManager;
+document.addEventListener('DOMContentLoaded', function() {
+    targetManager = new TargetListManager();
+});
+</script>
+{% endblock %}

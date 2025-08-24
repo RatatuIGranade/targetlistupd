@@ -1,0 +1,239 @@
+
+{% extends "base.html" %}
+{% block title %}Редактирование бейджа - Панель администратора{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary">
+                    <i class="fas fa-medal me-2"></i>
+                    Редактирование бейджа: {{ badge.display_name }}
+                </h2>
+                <a href="{{ url_for('admin_badges') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Назад
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card bg-dark border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        Редактировать бейдж
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('update_badge', badge_id=badge.id) }}" enctype="multipart/form-data">
+                        <!-- Basic Information -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="display_name" class="form-label">Отображаемое название</label>
+                                <input type="text" class="form-control bg-secondary text-light border-0"
+                                       id="display_name" name="display_name" value="{{ badge.display_name }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="rarity" class="form-label">Редкость</label>
+                                <select class="form-select bg-secondary text-light border-0" id="rarity" name="rarity">
+                                    <option value="common" {% if badge.rarity == 'common' %}selected{% endif %}>Обычный</option>
+                                    <option value="rare" {% if badge.rarity == 'rare' %}selected{% endif %}>Редкий</option>
+                                    <option value="epic" {% if badge.rarity == 'epic' %}selected{% endif %}>Эпический</option>
+                                    <option value="legendary" {% if badge.rarity == 'legendary' %}selected{% endif %}>Легендарный</option>
+                                    <option value="mythic" {% if badge.rarity == 'mythic' %}selected{% endif %}>Мифический</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Описание</label>
+                            <textarea class="form-control bg-secondary text-light border-0"
+                                      id="description" name="description" rows="2">{{ badge.description }}</textarea>
+                        </div>
+
+                        <!-- Emoji Configuration -->
+                        <div class="mb-4">
+                            <h6 class="text-warning">Настройка эмодзи</h6>
+                            
+                            <!-- Text Emoji -->
+                            <div class="mb-3">
+                                <label for="emoji" class="form-label">Текстовый эмодзи</label>
+                                <input type="text" class="form-control bg-secondary text-light border-0"
+                                       id="emoji" name="emoji" value="{{ badge.emoji or '' }}" maxlength="10" placeholder="🏆">
+                            </div>
+
+                            <!-- URL Emoji -->
+                            <div class="mb-3">
+                                <label for="emoji_url" class="form-label">Ссылка на эмодзи</label>
+                                <input type="url" class="form-control bg-secondary text-light border-0"
+                                       id="emoji_url" name="emoji_url" value="{{ badge.emoji_url or '' }}" placeholder="https://example.com/emoji.png">
+                            </div>
+
+                            <!-- File Upload -->
+                            <div class="mb-3">
+                                <label for="emoji_file" class="form-label">Загрузить файл эмодзи</label>
+                                <input type="file" class="form-control bg-secondary text-light border-0"
+                                       id="emoji_file" name="emoji_file" accept=".png,.jpg,.jpeg,.gif,.webp,.avif">
+                                <div class="form-text">Максимум 256KB. Форматы: PNG, JPG, GIF, WEBP, AVIF</div>
+                                {% if badge.emoji_url %}
+                                <div class="mt-2">
+                                    <small class="text-info">Текущий файл: {{ badge.emoji_url }}</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Colors -->
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="color" class="form-label">Цвет текста</label>
+                                <input type="color" class="form-control form-control-color bg-secondary border-0"
+                                       id="color" name="color" value="{{ badge.color }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="background_color" class="form-label">Цвет фона</label>
+                                <input type="color" class="form-control form-control-color bg-secondary border-0"
+                                       id="background_color" name="background_color" value="{{ badge.background_color }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="border_color" class="form-label">Цвет границы</label>
+                                <input type="color" class="form-control form-control-color bg-secondary border-0"
+                                       id="border_color" name="border_color" value="{{ badge.border_color }}">
+                            </div>
+                        </div>
+
+                        <!-- Gradient -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="has_gradient" name="has_gradient"
+                                       {% if badge.has_gradient %}checked{% endif %}>
+                                <label class="form-check-label" for="has_gradient">
+                                    Использовать градиент
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="row" id="gradient_options" style="{% if not badge.has_gradient %}display: none;{% endif %}">
+                            <div class="col-md-6 mb-3">
+                                <label for="gradient_start" class="form-label">Начальный цвет градиента</label>
+                                <input type="color" class="form-control form-control-color bg-secondary border-0"
+                                       id="gradient_start" name="gradient_start" value="{{ badge.gradient_start or '#ffd700' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="gradient_end" class="form-label">Конечный цвет градиента</label>
+                                <input type="color" class="form-control form-control-color bg-secondary border-0"
+                                       id="gradient_end" name="gradient_end" value="{{ badge.gradient_end or '#ff6b35' }}">
+                            </div>
+                        </div>
+
+                        <!-- Animation -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_animated" name="is_animated"
+                                       {% if badge.is_animated %}checked{% endif %}>
+                                <label class="form-check-label" for="is_animated">
+                                    Анимированный бейдж
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="icon" class="form-label">Font Awesome иконка</label>
+                            <input type="text" class="form-control bg-secondary text-light border-0"
+                                   id="icon" name="icon" value="{{ badge.icon }}" placeholder="fas fa-medal">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Сохранить изменения
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        Предварительный просмотр
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div id="badge_preview" class="badge rounded-pill px-3 py-2"
+                         style="background-color: {{ badge.background_color }}; 
+                                color: {{ badge.color }};
+                                border: 2px solid {{ badge.border_color }};">
+                        {% if badge.emoji_url %}
+                            <img src="{{ badge.emoji_url }}" class="me-1" style="width: 16px; height: 16px;">
+                        {% elif badge.emoji %}
+                            {{ badge.emoji }}
+                        {% else %}
+                            <i class="{{ badge.icon }} me-1"></i>
+                        {% endif %}
+                        {{ badge.display_name }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Live preview updates
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const preview = document.getElementById('badge_preview');
+    
+    if (form && preview) {
+        form.addEventListener('input', updatePreview);
+        form.addEventListener('change', updatePreview);
+    }
+    
+    function updatePreview() {
+        const displayName = document.getElementById('display_name').value || 'Бейдж';
+        const color = document.getElementById('color').value;
+        const backgroundColor = document.getElementById('background_color').value;
+        const borderColor = document.getElementById('border_color').value;
+        const emoji = document.getElementById('emoji').value;
+        const icon = document.getElementById('icon').value;
+        const hasGradient = document.getElementById('has_gradient').checked;
+        const gradientStart = document.getElementById('gradient_start').value;
+        const gradientEnd = document.getElementById('gradient_end').value;
+        const isAnimated = document.getElementById('is_animated').checked;
+        
+        if (hasGradient) {
+            preview.style.background = `linear-gradient(45deg, ${gradientStart}, ${gradientEnd})`;
+        } else {
+            preview.style.backgroundColor = backgroundColor;
+        }
+        
+        preview.style.color = color;
+        preview.style.border = `2px solid ${borderColor}`;
+        preview.className = `badge rounded-pill px-3 py-2 ${isAnimated ? 'badge-animated' : ''}`;
+        
+        let iconHtml = '';
+        if (emoji) {
+            iconHtml = `${emoji} `;
+        } else {
+            iconHtml = `<i class="${icon} me-1"></i>`;
+        }
+        
+        preview.innerHTML = iconHtml + displayName;
+    }
+    
+    // Toggle gradient options
+    const gradientCheckbox = document.getElementById('has_gradient');
+    const gradientOptions = document.getElementById('gradient_options');
+    
+    if (gradientCheckbox && gradientOptions) {
+        gradientCheckbox.addEventListener('change', function() {
+            gradientOptions.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+});
+</script>
+{% endblock %}
